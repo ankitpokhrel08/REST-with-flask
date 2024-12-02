@@ -1,39 +1,24 @@
 from flask import Flask, request
-from db import shop, product
-import uuid
+from flask_smorest import Api
+from resources.shop import blueprint as ShopBluePrint
+from resources.product import blueprint as ProductBluePrint
+
 app = Flask(__name__)
+app.config["PROPAGATE_EXCEPTIONS"] = True
+app.config['API_TITLE'] = 'Shop API'
+app.config['API_VERSION'] = 'v1'
+app.config['OPENAPI_VERSION'] = '3.0.2'
+app.config['OPENAPI_URL_PREFIX'] = '/doc'
+app.config['OPENAPI_SWAGGER_UI_PATH'] = '/'
+app.config['OPENAPI_SWAGGER_UI_URL'] = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist/'
+app.config['OPENAPI_REDOC_PATH'] = '/redoc'
+app.config['OPENAPI_REDOC_URL'] = 'https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js'
 
 
 
-@app.route('/shop')
-def get_shops():
-    return {"shop":list(shop.values())}
-
-@app.route('/shop', methods=['POST'])
-def create_shop():
-    shop = request.json
-    shop_id = uuid.uuid4().hex
-    shop = {**shop, "id": shop_id}
-    shop[shop_id] = shop
-    return shop, 201
-
-@app.route('/shop/<shop_id>')
-def get_shop(shop_id):
-    try:
-        return shop[shop_id], 200
-    except KeyError:
-        return {"message": "Shop not found"}, 404
-
-@app.route('product', methods=['POST'])
-def create_product():
-    new_product = request.json
-    if new_product["shop_id"] not in shop:
-        return {"message": "Shop not found"}, 404
-    product_id = uuid.uuid4().hex
-    product = {**new_product, "id": product_id}
-    product[product_id] = product
-    return product, 201
-
+api = Api(app)
+api.register_blueprint(ShopBluePrint)
+api.register_blueprint(ProductBluePrint)
 
 
 #GET - If we want some list/ite from the server
