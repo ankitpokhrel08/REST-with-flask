@@ -1,7 +1,12 @@
+import os
 from flask import Flask, request
 from flask_smorest import Api
 from resources.shop import blueprint as ShopBluePrint
 from resources.product import blueprint as ProductBluePrint
+from db import db
+# This will import the models and create the tables from dunder init file
+import models
+
 
 app = Flask(__name__)
 app.config["PROPAGATE_EXCEPTIONS"] = True
@@ -14,9 +19,15 @@ app.config['OPENAPI_SWAGGER_UI_URL'] = 'https://cdn.jsdelivr.net/npm/swagger-ui-
 app.config['OPENAPI_REDOC_PATH'] = '/redoc'
 app.config['OPENAPI_REDOC_URL'] = 'https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js'
 
-
+#This will create the tables in the database 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///shop.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 api = Api(app)
+
+with app.app_context():
+    db.create_all()
+
 api.register_blueprint(ShopBluePrint)
 api.register_blueprint(ProductBluePrint)
 
